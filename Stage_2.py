@@ -101,7 +101,7 @@ def validate_architecture(raw: dict) -> dict:
     Returns the validated dict or raises ValueError.
     """
     # 1. Structure
-    if list(raw.keys()) != ["files"]:
+    if set(raw.keys()) != {"files"}:
         raise ValueError("Architecture must contain exactly one key: 'files'")
     
     files = raw["files"]

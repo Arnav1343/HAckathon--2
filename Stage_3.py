@@ -75,7 +75,7 @@ def validate_contracts(raw: dict, depended_paths: set) -> dict:
     Returns the validated dict or raises ValueError.
     """
     # 1. Root Schema Guard (Exact keys only)
-    if list(raw.keys()) != ["files"]:
+    if set(raw.keys()) != {"files"}:
         raise ValueError("Contract root must contain exactly one key: 'files'")
     
     files = raw["files"]
