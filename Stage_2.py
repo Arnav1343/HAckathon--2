@@ -53,8 +53,12 @@ Rules for Architecture:
    - Path traversal (..).
 4. MODULARITY: Ensure files have crisp, single responsibilities.
 5. DEPENDENCIES: Ensure the dependency graph is directed and acyclic.
-
-Your output must be ONLY the raw JSON object. Do not provide any conversational text.\
+6. ANTI-CREEP: Do not introduce utility files, config files, abstraction \
+layers, test files, logging files, or service/manager/controller files \
+unless the user explicitly asked for them.
+7. LITERALISM: If a detail is not present in the original spec, it MUST NOT \
+be introduced. Choose the simplest possible architecture.
+8. Your output must be ONLY the raw JSON object. Do not provide any conversational text.\
 """
 
 # ---------------------------------------------------------------------------

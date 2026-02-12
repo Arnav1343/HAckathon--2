@@ -79,7 +79,12 @@ explicitly named them in the idea
 non_functional_requirements and constraints which may be empty lists.
 6. Use clear, declarative language. Each requirement should be independently \
 understandable.
-7. Do not invent requirements that are not stated or clearly implied by the idea.
+7. ANTI-INFERENCE RULE: Do not invent requirements that are not stated or \
+clearly implied by the idea. If a detail is not explicitly present in the \
+original idea, it MUST NOT be introduced. Choose the simplest possible \
+interpretation.
+8. LITERALISM: Do not improve the idea, do not add robustness, and do not \
+suggest optimizations.
 """
 
 

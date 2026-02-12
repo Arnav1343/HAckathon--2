@@ -35,7 +35,7 @@ class StateManager:
         "spec",
         "architecture",
         "contracts",
-        "generated_files",
+        "prompt_pack",
         "validation_results",
         "stage_status"
     }
@@ -46,7 +46,7 @@ class StateManager:
             "spec": None,
             "architecture": None,
             "contracts": None,
-            "generated_files": {},
+            "prompt_pack": {},
             "validation_results": {},
             "stage_status": {}
         }
@@ -111,7 +111,7 @@ class ConfigurationManager:
     """Manages deterministic system configuration."""
     
     def __init__(self):
-        self._execution_order = (1, 2, 3, 4, 5)
+        self._execution_order = (1, 2, 3, 4)
         self.max_regeneration_attempts = 3
         self.deterministic_mode = True
         self.logging_enabled = True
@@ -123,8 +123,7 @@ class ConfigurationManager:
             1: None,  # stage1_spec.run
             2: None,  # stage2_architecture.run
             3: None,  # stage3_contracts.run
-            4: None,  # stage4_generator.run
-            5: None   # stage5_validator.run
+            4: None   # stage4_generator.run
         }
     
     def get_execution_order(self) -> tuple:
@@ -393,17 +392,13 @@ class StageOrchestrator:
         from Stage_2 import run as stage_2_run
         self.config_manager.register_stage(2, stage_2_run)
 
-        # Stage 3 — Interface Contracts
+        # Stage 3 — Structural Decomposition
         from Stage_3 import run as stage_3_run
         self.config_manager.register_stage(3, stage_3_run)
 
-        # Stages 4–5 — placeholder until implemented
-        def placeholder_stage(context):
-            self.logger.info("Placeholder stage executed")
-            return True
-
-        for stage_num in (4, 5):
-            self.config_manager.register_stage(stage_num, placeholder_stage)
+        # Stage 4 — Implementation Prompt Design
+        from Stage_4 import run as stage_4_run
+        self.config_manager.register_stage(4, stage_4_run)
     
     def execute_pipeline(self) -> bool:
         """Execute the complete pipeline with stage isolation."""
