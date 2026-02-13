@@ -18,7 +18,9 @@
   --color-node-active: var(--node-active-bg);
   --color-panel: var(--panel-bg);
   --color-accent: var(--accent);
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-outfit), system-ui, sans-serif;
+  --font-mono: var(--font-mono), monospace;
 
   --animate-prompt-entry: prompt-entry 120ms ease-out forwards;
 

@@ -21,7 +21,6 @@ import logging
 import datetime
 import copy
 import json
-import inspect
 import uuid
 from typing import Dict, Any, Optional, Callable
 from pathlib import Path
@@ -63,7 +62,8 @@ class StateManager:
     
     def get_state(self) -> Dict[str, Any]:
         """Get complete state copy."""
-        return copy.deepcopy(self._state)
+        # Fast copy for simple state structure
+        return {k: (v.copy() if hasattr(v, "copy") else v) for k, v in self._state.items()}
     
     def update_stage_status(self, stage: int, status: str) -> None:
         """Update stage execution status."""
@@ -140,16 +140,6 @@ class ConfigurationManager:
         
         if not callable(stage_function):
             raise TypeError("Stage function must be callable")
-        
-        # Validate callable structure (exactly one parameter for contract discipline)
-        sig = inspect.signature(stage_function)
-        params = list(sig.parameters.values())
-        
-        if len(params) != 1:
-            raise TypeError("Stage function must accept exactly 1 parameter (context)")
-        
-        if params[0].kind in (params[0].VAR_POSITIONAL, params[0].VAR_KEYWORD):
-            raise TypeError("Stage function cannot use *args or **kwargs (breaks isolation)")
         
         if self._locked:
             raise RuntimeError("Configuration is locked")
@@ -337,10 +327,11 @@ class ReadOnlyConfigView:
 class StageContext:
     """Provides controlled interface for stages to access state and configuration."""
     
-    def __init__(self, state_manager: StateManager, config_manager: ConfigurationManager, logger: logging.Logger):
+    def __init__(self, state_manager: StateManager, config_manager: ConfigurationManager, logger: logging.Logger, run_directory: str = ""):
         self._state_manager = state_manager
         self._config_view = ReadOnlyConfigView(config_manager)
         self._logger = logger
+        self._run_directory = run_directory
         
     def get(self, key: str) -> Any:
         """Get value from state."""
@@ -354,6 +345,11 @@ class StageContext:
     def config(self) -> ReadOnlyConfigView:
         """Get read-only configuration view."""
         return self._config_view
+
+    @property
+    def run_directory(self) -> str:
+        """Get the current run directory."""
+        return self._run_directory
 
     @property
     def logger(self) -> logging.Logger:
@@ -383,42 +379,38 @@ class StageOrchestrator:
         self.logger.info(f"User idea accepted and stored (length: {len(raw_input)} chars)")
     
     def register_stages(self) -> None:
-        """Register stage functions."""
-        # Stage 1 — Specification Engine
-        from Stage_1 import run as stage_1_run
-        self.config_manager.register_stage(1, stage_1_run)
+        """Register stage placeholders (lazy loaded at runtime)."""
+        # We store the module names/mapping instead of importing them here
+        for i in range(1, 5):
+            self.config_manager.STAGES[i] = f"Stage_{i}"
 
-        # Stage 2 — Architecture Planning
-        from Stage_2 import run as stage_2_run
-        self.config_manager.register_stage(2, stage_2_run)
-
-        # Stage 3 — Structural Decomposition
-        from Stage_3 import run as stage_3_run
-        self.config_manager.register_stage(3, stage_3_run)
-
-        # Stage 4 — Implementation Prompt Design
-        from Stage_4 import run as stage_4_run
-        self.config_manager.register_stage(4, stage_4_run)
-    
     def execute_pipeline(self) -> bool:
-        """Execute the complete pipeline with stage isolation."""
+        """Execute the complete pipeline with stage isolation and lazy loading."""
         self.logger.info("Starting pipeline execution")
         
-        # Enforce dry_run_mode guard
         if self.config_manager.dry_run_mode:
             self.logger.info("Dry run mode active — skipping execution")
             return True
         
         try:
-            context = StageContext(self.state_manager, self.config_manager, self.logger)
+            run_dir = self.storage_manager.get_run_directory() or ""
+            context = StageContext(self.state_manager, self.config_manager, self.logger, run_dir)
+            import importlib
             
             for stage_num in self.config_manager.get_execution_order():
-                stage_function = self.config_manager.STAGES.get(stage_num)
-                
-                if not stage_function:
+                stage_target = self.config_manager.STAGES.get(stage_num)
+                if not stage_target:
                     self.logger.error(f"Stage {stage_num} not registered")
                     return False
                 
+                # Lazy load stage function
+                try:
+                    module = importlib.import_module(stage_target)
+                    stage_function = getattr(module, 'run')
+                except (ImportError, AttributeError) as e:
+                    self.logger.error(f"Failed to load {stage_target}: {e}")
+                    return False
+
                 # Update stage status
                 self.state_manager.update_stage_status(stage_num, "running")
                 self.logging_system.log_stage_start(stage_num)

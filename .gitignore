@@ -35,6 +35,7 @@ builds/
 .antigravity/
 brain/
 *.log
+.cache/
 
 # OS
 .DS_Store

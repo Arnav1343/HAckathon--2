@@ -14,6 +14,7 @@ export const ExplorerLayout = memo(({ project }: ExplorerLayoutProps) => {
     const [isProjectExpanded, setIsProjectExpanded] = useState(true);
     const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set());
     const [selectedFile, setSelectedFile] = useState<string | null>(null);
+    const [localPromptPack, setLocalPromptPack] = useState<PromptPack>(project.prompt_pack);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const selectedRef = useRef<HTMLDivElement>(null);
 
@@ -48,12 +49,18 @@ export const ExplorerLayout = memo(({ project }: ExplorerLayoutProps) => {
         }
     }, [selectedFile]);
 
+    const handleEditPrompt = useCallback((path: string, newContent: string) => {
+        setLocalPromptPack(prev => prev.map(item =>
+            item.path === path ? { ...item, implementation_prompt: newContent } : item
+        ));
+    }, []);
+
     const promptMap = useMemo(() => {
-        return project.prompt_pack.reduce((acc, item) => {
+        return localPromptPack.reduce((acc, item) => {
             acc[item.path] = item.implementation_prompt;
             return acc;
         }, {} as Record<string, string>);
-    }, [project.prompt_pack]);
+    }, [localPromptPack]);
 
     const selectedPrompt = selectedFile ? promptMap[selectedFile] : null;
 
@@ -110,6 +117,7 @@ export const ExplorerLayout = memo(({ project }: ExplorerLayoutProps) => {
                     content={selectedPrompt}
                     fileName={selectedFile}
                     projectName={project.spec.project_name}
+                    onEdit={selectedFile ? (val: string) => handleEditPrompt(selectedFile, val) : undefined}
                 />
             </div>
         </div>
