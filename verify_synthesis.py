@@ -11,7 +11,7 @@ def main():
     # Set environment for Backboard verification
     os.environ["SPECFORGE_PROVIDER"] = "backboard"
     os.environ["BACKBOARD_API_KEY"] = "espr_-xJfRq2-EDhWYk0SvlNpZJjvZ-HJOU9HB5VriVdz1OY"
-    os.environ["SPECFORGE_MODEL"] = "gpt-4o"
+    os.environ["SPECFORGE_MODEL"] = "gpt-4o-mini"
     
     orchestrator = StageOrchestrator()
     orchestrator.register_stages()
@@ -21,7 +21,7 @@ def main():
     orchestrator.logger = orchestrator.logging_system.initialize_logger()
     
     # Store the idea
-    idea = "Create a random space haiku generator."
+    idea = "Build a house with 3 bedrooms, 2 bathrooms, a kitchen, and a living room. The project should include blueprints, material lists, and construction phases."
     orchestrator.state_manager.set("idea_raw", idea)
     
     # Execute pipeline

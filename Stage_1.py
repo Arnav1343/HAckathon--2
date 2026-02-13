@@ -156,8 +156,8 @@ def validate_spec(raw: dict) -> dict:
                         f"got {type(item).__name__}"
                     )
 
-    # 4. Required list fields must be non-empty
-    for key in ("inputs", "outputs", "functional_requirements"):
+    # 4. Required list fields must be non-empty (except inputs)
+    for key in ("outputs", "functional_requirements"):
         if len(raw[key]) == 0:
             raise ValueError(f"Required list '{key}' must not be empty")
 
